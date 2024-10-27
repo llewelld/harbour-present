@@ -1,0 +1,116 @@
+<html>
+<head>
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="pdf.js" type="module"></script>
+
+<script type="module">
+  // If absolute URL from the remote server is provided, configure the CORS
+  // header on that server.
+  var url = 'presentation.pdf';
+
+  // Loaded via <script> tag, create shortcut to access PDF.js exports.
+  var { pdfjsLib } = globalThis;
+
+  // The workerSrc property shall be specified.
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+
+  var pdf;
+  var scale = 1.0;
+  var canvasFront;
+  var canvasBack;
+  var contextFront;
+  var contextBack;
+  var pageNumber = 1;
+
+  function renderPage(pageNumber) {
+    pdf.getPage(pageNumber).then(function(page) {
+      dump('Page loaded\n');
+      var viewport = page.getViewport({scale: scale});
+
+      // Render PDF page into canvas context
+      var renderContext = {
+        canvasContext: contextBack,
+        viewport: viewport
+      };
+      var renderTask = page.render(renderContext);
+      renderTask.promise.then(function () {
+        dump('Page rendered\n');
+        contextFront.drawImage(canvasBack, 0, 0);
+      });
+    });
+  }
+
+  function renderNextPage() {
+    pageNumber += 1;
+    if (pageNumber > pdf.numPages) {
+      pageNumber = pdf.numPages;
+    }
+    renderPage(pageNumber);
+  }
+
+  function renderPrevPage() {
+    pageNumber -= 1;
+    if (pageNumber < 1) {
+      pageNumber = 1;
+    }
+    renderPage(pageNumber);
+  }
+
+  function tapped(event) {
+    if (event.clientX > window.screen.width / 2.0) {
+      renderNextPage();
+    }
+    else {
+      renderPrevPage();
+    }
+  }
+  window.tapped = tapped;
+
+  // Asynchronous download of PDF
+  var loadingTask = pdfjsLib.getDocument(url);
+  loadingTask.promise.then(function(pdfloaded) {
+    pdf = pdfloaded;
+    dump("PDF loaded\n");
+
+    // Fetch the first page
+    pdf.getPage(pageNumber).then(function(page) {
+      dump('Page loaded\n');
+
+      scale = 1.0;
+      var viewport = page.getViewport({scale: scale});
+      var screenwidth = Math.max(window.screen.width, window.screen.height);
+      var screenheight = Math.min(window.screen.width, window.screen.height);
+      dump("Window: (" + screenwidth + ", " + screenheight + ")\n");
+      dump("Viewport: (" + viewport.width + ", " + viewport.height + ")\n");
+
+      var xscale = screenwidth / viewport.width;
+      var yscale = screenheight / viewport.height;
+      dump("Scale: (" + xscale + ", " + yscale + ")\n");
+      scale = Math.min(xscale, yscale) * 4;
+      viewport = page.getViewport({scale: scale});
+
+      // Prepare canvas using PDF page dimensions
+      canvasFront = document.getElementById('canvas-front');
+      contextFront = canvasFront.getContext('2d');
+      canvasFront.height = viewport.height;
+      canvasFront.width = viewport.width;
+
+      canvasBack = document.createElement('canvas');
+      canvasBack.height = viewport.height;
+      canvasBack.width = viewport.width;
+      contextBack = canvasBack.getContext('2d');
+
+      renderPage(pageNumber);
+    });
+  }, function (reason) {
+    // PDF loading error
+    console.error(reason);
+  });
+</script>
+
+</head>
+<body style="padding: 0; margin: 0;" onclick="tapped(event)">
+<canvas id="canvas-front" style="padding-left: 0; padding-right: 0; margin-left: auto; margin-right: auto; display: block; height: 100%;"></canvas>
+</body>
+</html>

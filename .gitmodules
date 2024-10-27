@@ -1,0 +1,6 @@
+[submodule "libs/qhttp"]
+	path = libs/qhttp
+	url = https://github.com/azadkuh/qhttp.git
+[submodule "libs/http-parser"]
+	path = libs/http-parser
+	url = https://github.com/nodejs/http-parser.git
