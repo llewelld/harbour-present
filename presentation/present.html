@@ -59,6 +59,17 @@
     + "  }\n"
     + "\n";
 
+  // GET a file
+  function request(url) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", url);
+      xhr.onload = resolve;
+      xhr.onerror = reject;
+      xhr.send();
+    });
+  }
+
   // Compile the shader with the given text
   // Type should be either gl.FRAGMENT_SHADER or gl.VERTEX_SHADER
   function compileShader(str, type) {
@@ -124,87 +135,99 @@
 
   // Initialise the PDF document, canvases and textures
   function initialise() {
-    // Fetch the first page
-    pdf.getPage(pageNumber).then(function(page) {
-      dump('Page loaded\n');
+    // Fetch the shaders
+    request("fragment-shader.frag").then(function(e) {
+      dump("Loaded fragment shader\n");
+      fsCode = e.target.response;
+      request("vertex-shader.vert").then(function(e) {
+        vsCode = e.target.response;
+        // Fetch the first page
+        pdf.getPage(pageNumber).then(function(page) {
+          dump('Page loaded\n');
 
-      // Figure out the correct scaling of the PDF render
-      scale = 1.0;
-      var viewport = page.getViewport({scale: scale});
-      var screenwidth = Math.max(window.screen.width, window.screen.height);
-      var screenheight = Math.min(window.screen.width, window.screen.height);
+          // Figure out the correct scaling of the PDF render
+          scale = 1.0;
+          var viewport = page.getViewport({scale: scale});
+          var screenwidth = Math.max(window.screen.width, window.screen.height);
+          var screenheight = Math.min(window.screen.width, window.screen.height);
 
-      var xscale = screenwidth / viewport.width;
-      var yscale = screenheight / viewport.height;
-      scale = Math.min(xscale, yscale) * 4;
-      viewport = page.getViewport({scale: scale});
+          var xscale = screenwidth / viewport.width;
+          var yscale = screenheight / viewport.height;
+          scale = Math.min(xscale, yscale) * 4;
+          viewport = page.getViewport({scale: scale});
 
-      // Prepare the front buffer canvas using PDF page dimensions
-      canvasFront = document.getElementById("canvas-front");
-      gl = canvasFront.getContext("webgl2");
-      canvasFront.height = viewport.height;
-      canvasFront.width = viewport.width;
-      gl.getExtension("OES_standard_derivatives");
+          // Prepare the front buffer canvas using PDF page dimensions
+          canvasFront = document.getElementById("canvas-front");
+          gl = canvasFront.getContext("webgl2");
+          canvasFront.height = viewport.height;
+          canvasFront.width = viewport.width;
+          gl.getExtension("OES_standard_derivatives");
 
-      // Prepare the back buffer canvases
-      var canvas;
-      var context;
-      canvas = document.createElement("canvas");
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-      context = canvas.getContext("2d");
-      canvasBack.push(canvas);
-      contextBack.push(context);
+          // Prepare the back buffer canvases
+          var canvas;
+          var context;
+          canvas = document.createElement("canvas");
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          context = canvas.getContext("2d");
+          canvasBack.push(canvas);
+          contextBack.push(context);
 
-      canvas = document.createElement("canvas");
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-      context = canvas.getContext("2d");
-      canvasBack.push(canvas);
-      contextBack.push(context);
+          canvas = document.createElement("canvas");
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          context = canvas.getContext("2d");
+          canvasBack.push(canvas);
+          contextBack.push(context);
 
-      // Compile and set up the shader program
-      shaderProgram = compileProgram(vsCode, fsCode);
-      gl.useProgram(shaderProgram);
+          // Compile and set up the shader program
+          shaderProgram = compileProgram(vsCode, fsCode);
+          gl.useProgram(shaderProgram);
 
-      shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-      gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+          shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+          gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
-      shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-      gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+          shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+          gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
 
-      shaderProgram.fade = gl.getUniformLocation(shaderProgram, "fade");
+          shaderProgram.fade = gl.getUniformLocation(shaderProgram, "fade");
 
-      squareVertexPositionBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-      var vertices = [
-        1.0,  -1.0,  0.0,
-        -1.0,  -1.0,  0.0,
-        1.0, 1.0,  0.0,
-        -1.0, 1.0,  0.0
-      ];
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-      squareVertexPositionBuffer.itemSize = 3;
-      squareVertexPositionBuffer.numItems = 4;
+          squareVertexPositionBuffer = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+          var vertices = [
+            1.0,  -1.0,  0.0,
+            -1.0,  -1.0,  0.0,
+            1.0, 1.0,  0.0,
+            -1.0, 1.0,  0.0
+          ];
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+          squareVertexPositionBuffer.itemSize = 3;
+          squareVertexPositionBuffer.numItems = 4;
 
-      squareVertexTextureCoordBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer);
-      var textureCoords = [
-        1.0, 1.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        0.0, 0.0
-      ];
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-      squareVertexTextureCoordBuffer.itemSize = 2;
-      squareVertexTextureCoordBuffer.numItems = 4;
+          squareVertexTextureCoordBuffer = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer);
+          var textureCoords = [
+            1.0, 1.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            0.0, 0.0
+          ];
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+          squareVertexTextureCoordBuffer.itemSize = 2;
+          squareVertexTextureCoordBuffer.numItems = 4;
 
-      tex1 = createTexture(canvasBack[0], 0, shaderProgram, "canvasBack1");
-      tex2 = createTexture(canvasBack[1], 1, shaderProgram, "canvasBack2");
+          tex1 = createTexture(canvasBack[0], 0, shaderProgram, "canvasBack1");
+          tex2 = createTexture(canvasBack[1], 1, shaderProgram, "canvasBack2");
 
-      // Render the first page
-      clearBackBuffer(0, "#ffffffff");
-      renderPage(1, 1);
+          // Render the first page
+          clearBackBuffer(0, "#ffffffff");
+          renderPage(1, 1);
+        });
+      }, function(e) {
+        dump("Failed to load vertex shader\n");
+      });
+    }, function(e) {
+      dump("Failed to load fragment shader\n");
     });
   }
 

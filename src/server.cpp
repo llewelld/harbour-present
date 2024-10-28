@@ -18,6 +18,8 @@ Server::Server(QObject *parent)
   contenttypes.insert("txt","text/plain");
   contenttypes.insert("js","text/javascript");
   contenttypes.insert("pdf","application/pdf");
+  contenttypes.insert("vert","text/plain");
+  contenttypes.insert("frag","text/plain");
   loadResources();
 }
 
@@ -34,6 +36,10 @@ bool Server::loadResources()
   success &= loadResource("/pdf.js", path);
   path = SailfishApp::pathTo("presentation/pdf.worker.min.js").toLocalFile();
   success &= loadResource("/pdf.worker.min.js", path);
+  path = SailfishApp::pathTo("presentation/vertex-shader.vert").toLocalFile();
+  success &= loadResource("/vertex-shader.vert", path);
+  path = SailfishApp::pathTo("presentation/fragment-shader.frag").toLocalFile();
+  success &= loadResource("/fragment-shader.frag", path);
 
   return success;
 }
@@ -50,7 +56,6 @@ bool Server::loadResource(QString const &name, QString const &filename, QString 
       int extsep = filename.lastIndexOf(".");
       QString const &extension = extsep >= 0 ? filename.mid(extsep + 1) : "html";
       insertType = contenttypes.value(extension, "text/html");
-      qDebug() << "Extension: " << extension << "; Content-Type: " << insertType;
     }
     resources.insert(name, Resource(contents, insertType));
     qDebug() << "Loaded resource: " << name << " (size " << contents.length() << " bytes)";
@@ -71,7 +76,6 @@ bool Server::start()
       QHostAddress::Any, 8080,
       [this](QHttpRequest* req, QHttpResponse* res) {
           QUrl url = req->url();
-          qDebug() << "Received request: " << url.path();
           if (resources.contains(url.path())) {
             // HTTP status 200
             res->setStatusCode(qhttp::ESTATUS_OK);
@@ -79,7 +83,6 @@ bool Server::start()
             res->addHeader("Content-Type", resource.getContentType());
             // The response body data
             res->end(resource.getData());
-            qDebug() << "Served: " << url;
           }
           else {
             // HTTP status 200

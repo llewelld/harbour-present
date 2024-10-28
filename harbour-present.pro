@@ -15,11 +15,17 @@ TARGET = harbour-present
 CONFIG += sailfishapp
 
 SOURCES += src/harbour-present.cpp \
-    resource.cpp \
+    src/resource.cpp \
     src/server.cpp
+
+HEADERS += \
+    src/resource.h \
+    src/server.h
 
 DISTFILES += README.md \
     LICENSE \
+    presentation/fragment-shader.frag \
+    presentation/vertex-shader.vert \
     qml/harbour-present.qml \
     qml/cover/CoverPage.qml \
     qml/pages/Present.qml \
@@ -52,26 +58,24 @@ INCLUDEPATH += \
     ./libs/ \
     ./libs/qhttp/src/
 
-SOURCES  += \
+SOURCES += \
     ./libs/qhttp/src/qhttpabstracts.cpp \
     ./libs/qhttp/src/qhttpserverconnection.cpp \
     ./libs/qhttp/src/qhttpserverrequest.cpp \
     ./libs/qhttp/src/qhttpserverresponse.cpp \
     ./libs/qhttp/src/qhttpserver.cpp
 
-HEADERS  += \
+HEADERS += \
     ./libs/qhttp/src/qhttpfwd.hpp \
     ./libs/qhttp/src/qhttpabstracts.hpp \
     ./libs/qhttp/src/qhttpserverconnection.hpp \
     ./libs/qhttp/src/qhttpserverrequest.hpp \
     ./libs/qhttp/src/qhttpserverresponse.hpp \
-    ./libs/qhttp/src/qhttpserver.hpp \
-    resource.h \
-    src/server.h
+    ./libs/qhttp/src/qhttpserver.hpp
 
 # Joyent http_parser
 # See https://github.com/nodejs/http-parser
-SOURCES  += \
+SOURCES += \
     ./libs/http-parser/http_parser.c
-HEADERS  += \
+HEADERS += \
     ./libs/http-parser/http_parser.h
