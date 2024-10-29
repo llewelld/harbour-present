@@ -24,7 +24,7 @@ HEADERS += \
 
 DISTFILES += README.md \
     LICENSE \
-    presentation/fragment-shader.frag \
+    presentation/lava.frag \
     presentation/vertex-shader.vert \
     qml/harbour-present.qml \
     qml/cover/CoverPage.qml \

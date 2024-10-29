@@ -49,6 +49,7 @@
     + "  uniform sampler2D canvasBack2;\n"
     + "  varying vec2 fragCoord;\n"
     + "  uniform float fade;\n"
+    + "  uniform float page;\n"
     + "\n"
     + "  void main () {\n"
     + "    vec4 colour1 = texture2D(canvasBack1, fragCoord);\n"
@@ -191,6 +192,7 @@
           gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
 
           shaderProgram.fade = gl.getUniformLocation(shaderProgram, "fade");
+          shaderProgram.page = gl.getUniformLocation(shaderProgram, "page");
 
           squareVertexPositionBuffer = gl.createBuffer();
           gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
@@ -247,7 +249,7 @@
   // To be called repeatedly to perform the animation
   function transition() {
     var timeNow = new Date().valueOf() / 1000.0;
-    var fade = Math.min(2.0 * (timeNow - slideChangeTime), 1.0);
+    var fade = Math.min(0.4 * (timeNow - slideChangeTime), 1.0);
     gl.uniform1f(shaderProgram.fade, fade);
 
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -270,6 +272,7 @@
     updateTexture(tex1, canvasBack[0], 0);
     updateTexture(tex2, canvasBack[1], 1);
     slideChangeTime = new Date().valueOf() / 1000.0;
+    gl.uniform1f(shaderProgram.page, pageNumber);
 
     transition();
   }
