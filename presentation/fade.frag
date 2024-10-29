@@ -4,6 +4,7 @@ uniform sampler2D canvasBack1;
 uniform sampler2D canvasBack2;
 varying vec2 fragCoord;
 uniform float fade;
+uniform float page;
 
 void main () {
   vec4 colour1 = texture2D(canvasBack1, fragCoord);
