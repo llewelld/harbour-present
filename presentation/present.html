@@ -137,7 +137,7 @@
   // Initialise the PDF document, canvases and textures
   function initialise() {
     // Fetch the shaders
-    request("fragment-shader.frag").then(function(e) {
+    request("lava.frag").then(function(e) {
       dump("Loaded fragment shader\n");
       fsCode = e.target.response;
       request("vertex-shader.vert").then(function(e) {

@@ -38,8 +38,8 @@ bool Server::loadResources()
   success &= loadResource("/pdf.worker.min.js", path);
   path = SailfishApp::pathTo("presentation/vertex-shader.vert").toLocalFile();
   success &= loadResource("/vertex-shader.vert", path);
-  path = SailfishApp::pathTo("presentation/fragment-shader.frag").toLocalFile();
-  success &= loadResource("/fragment-shader.frag", path);
+  path = SailfishApp::pathTo("presentation/lava.frag").toLocalFile();
+  success &= loadResource("/lava.frag", path);
 
   return success;
 }
