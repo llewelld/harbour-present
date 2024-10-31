@@ -12,7 +12,13 @@
 # The name of your application
 TARGET = harbour-present
 
-CONFIG += sailfishapp
+CONFIG += \
+    link_pkgconfig \
+    sailfishapp
+
+PKGCONFIG += \
+    qt5embedwidget \
+    sailfishwebengine
 
 SOURCES += src/harbour-present.cpp \
     src/resource.cpp \
@@ -24,6 +30,8 @@ HEADERS += \
 
 DISTFILES += README.md \
     LICENSE \
+    presentation/components/component.js \
+    presentation/component.manifest \
     presentation/lava.frag \
     presentation/vertex-shader.vert \
     qml/harbour-present.qml \

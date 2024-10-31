@@ -9,5 +9,10 @@ Page {
         id: webview
         anchors.fill: parent
         url: "http://localhost:8080/present.html"
+
+        Component.onCompleted: {
+            console.log("Loading component");
+            loadFrameScript("chrome://components/content/component.js");
+        }
     }
 }

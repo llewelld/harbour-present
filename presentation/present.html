@@ -80,7 +80,7 @@
     gl.compileShader(shader);
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      dump("Shader error: " + gl.getShaderInfoLog(shader) + "\n");
+      console.log("Shader error: " + gl.getShaderInfoLog(shader) + "\n");
       shader = null;
     }
 
@@ -98,7 +98,7 @@
     gl.linkProgram(shaderProgram);
 
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-      dump("Could not initialise shaders\n");
+      console.log("Could not initialise shaders\n");
     }
 
     return shaderProgram;
@@ -138,13 +138,13 @@
   function initialise() {
     // Fetch the shaders
     request("lava.frag").then(function(e) {
-      dump("Loaded fragment shader\n");
+      console.log("Loaded fragment shader\n");
       fsCode = e.target.response;
       request("vertex-shader.vert").then(function(e) {
         vsCode = e.target.response;
         // Fetch the first page
         pdf.getPage(pageNumber).then(function(page) {
-          dump('Page loaded\n');
+          console.log('Page loaded\n');
 
           // Figure out the correct scaling of the PDF render
           scale = 1.0;
@@ -226,10 +226,10 @@
           renderPage(1, 1);
         });
       }, function(e) {
-        dump("Failed to load vertex shader\n");
+        console.log("Failed to load vertex shader\n");
       });
     }, function(e) {
-      dump("Failed to load fragment shader\n");
+      console.log("Failed to load fragment shader\n");
     });
   }
 
@@ -308,10 +308,32 @@
     });
   }
 
+  function setPageNumber(newNumber) {
+    var changed = false;
+
+    if (newNumber > pdf.numPages) {
+      newNumber = pdf.numPages;
+    }
+    if (newNumber < 1) {
+      newNumber = 1;
+    }
+
+    if (pageNumber != newNumber) {
+      pageNumber = newNumber;
+      changed = true;
+
+      // Dispatch a pagechange event
+      const event = new CustomEvent("pagechange", { detail: { page: pageNumber }});
+      dispatchEvent(event);
+    }
+
+    return changed;
+  }
+
   // Render a single page to a back buffer
   function renderPage(pageNumber, buffer) {
     pdf.getPage(pageNumber).then(function(page) {
-      dump('Page found\n');
+      console.log('Page found\n');
       var viewport = page.getViewport({scale: scale});
 
       // Render PDF page into canvas context
@@ -321,7 +343,7 @@
       };
       var renderTask = page.render(renderContext);
       renderTask.promise.then(function () {
-        dump('Page rendered\n');
+        console.log('Page rendered\n');
         // Don't perform an instant render, instead apply the shader
         //gl.drawImage(canvasBack[buffer], 0, 0);
           startTransition();
@@ -331,22 +353,16 @@
 
   // Move one page forwards in the presentation
   function renderNextPage() {
-    pageNumber += 1;
-    if (pageNumber > pdf.numPages) {
-      pageNumber = pdf.numPages;
-    }
-    else {
+    var changed = setPageNumber(pageNumber + 1);
+    if (changed) {
       renderPages(pageNumber - 1, pageNumber);
     }
   }
 
   // Move one page backwards in the presentation
   function renderPrevPage() {
-    pageNumber -= 1;
-    if (pageNumber < 1) {
-      pageNumber = 1;
-    }
-    else {
+    var changed = setPageNumber(pageNumber - 1);
+    if (changed) {
       renderPages(pageNumber + 1, pageNumber);
     }
   }
@@ -366,7 +382,7 @@
   // Asynchronous download of PDF
   var loadingTask = pdfjsLib.getDocument(url);
   loadingTask.promise.then(function(pdfloaded) {
-    dump("PDF loaded\n");
+    console.log("PDF loaded\n");
     pdf = pdfloaded;
     initialise();
   }, function (reason) {

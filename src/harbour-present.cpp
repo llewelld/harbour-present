@@ -3,6 +3,7 @@
 #endif
 
 #include <sailfishapp.h>
+#include <libsailfishwebengine/webengine.h>
 
 #include "server.h"
 
@@ -34,6 +35,9 @@ int main(int argc, char *argv[])
   view->setSource(SailfishApp::pathTo("qml/harbour-present.qml"));
 
   view->show();
+
+  SailfishOS::WebEngine *webEngine = SailfishOS::WebEngine::instance();
+  webEngine->addComponentManifest(SailfishApp::pathTo("presentation/component.manifest").toLocalFile());
 
   result = app->exec();
 
