@@ -1,7 +1,7 @@
-/* -*- Mode: JavaScript; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* vim: set et ts=2 sts=2 sw=2: */
+/* SPDX-License-Identifier: BSD-2-Clause */
+/* Copyright © 2024 David Llewellyn-Jones */
+
 "use strict";
 
 var globalObject = null;
@@ -14,19 +14,45 @@ Component.prototype = {
   QueryInterface: ChromeUtils.generateQI([Ci.nsIObserver,
                                           Ci.nsISupportsWeakReference]),
 
-  _init: function()
-  {
+  _init: function() {
     Logger.debug("Component init called");
 
+    // From DOM to front end
     addEventListener("pagechange", this, true, true);
+    // From front end to DOM
+    Services.obs.addObserver(this, "present:nextpage", true);
+    Services.obs.addObserver(this, "present:prevpage", true);
   },
 
   handleEvent: function(aEvent) {
+    // Events arriving from the DOM
+    // These are forwarded to the front end code
     switch (aEvent.type) {
       case "pagechange": {
-        Logger.debug("Event: pagechange: " + aEvent.detail.page);
-        sendAsyncMessage("embed:pagechange", { "page": aEvent.detail.page });
+        var result = { "page": aEvent.detail.page }
+        Services.obs.notifyObservers(null, "present:pagechange", JSON.stringify(result));
         break;
+      }
+    }
+  },
+
+  _sendEvent: function(type) {
+    // Dispatch a pagechange event
+    var event = content.document.createEvent("Event");
+    event.initEvent(type, true, true);
+    content.dispatchEvent(event);
+  },
+
+  observe: function(aSubject, aTopic, data) {
+    // Notifications arriving from the front end code
+    // These are forwarded to the DOM
+    switch (aTopic) {
+      case "present:nextpage": {
+        this._sendEvent("nextpage");
+        break;
+      }
+      case "present:prevpage": {
+        this._sendEvent("prevpage");
       }
     }
   },

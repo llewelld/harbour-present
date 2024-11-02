@@ -33,6 +33,8 @@ DISTFILES += README.md \
     presentation/components/component.js \
     presentation/component.manifest \
     presentation/lava.frag \
+    presentation/present.css \
+    presentation/present.jsm \
     presentation/vertex-shader.vert \
     qml/harbour-present.qml \
     qml/cover/CoverPage.qml \

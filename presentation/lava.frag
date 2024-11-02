@@ -1,3 +1,7 @@
+/* vim: set et ts=2 sts=2 sw=2: */
+/* SPDX-License-Identifier: BSD-2-Clause */
+/* Copyright © 2024 David Llewellyn-Jones */
+
 precision highp float;
 
 #define M_PI 3.1415926535897932384626433832795

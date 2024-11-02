@@ -1,3 +1,7 @@
+/* vim: set et ts=2 sts=2 sw=2: */
+/* SPDX-License-Identifier: BSD-2-Clause */
+/* Copyright © 2024 David Llewellyn-Jones */
+
 #include "server.h"
 
 #include <QMultiMap>
@@ -17,6 +21,8 @@ Server::Server(QObject *parent)
   contenttypes.insert("html","text/html");
   contenttypes.insert("txt","text/plain");
   contenttypes.insert("js","text/javascript");
+  contenttypes.insert("jsm","text/javascript");
+  contenttypes.insert("css","text/css");
   contenttypes.insert("pdf","application/pdf");
   contenttypes.insert("vert","text/plain");
   contenttypes.insert("frag","text/plain");
@@ -30,8 +36,10 @@ bool Server::loadResources()
 
   path = SailfishApp::pathTo("presentation/present.html").toLocalFile();
   success &= loadResource("/present.html", path);
-  path = SailfishApp::pathTo("presentation/presentation.pdf").toLocalFile();
-  success &= loadResource("/presentation.pdf", path);
+  path = SailfishApp::pathTo("presentation/present.css").toLocalFile();
+  success &= loadResource("/present.css", path);
+  path = SailfishApp::pathTo("presentation/present.jsm").toLocalFile();
+  success &= loadResource("/present.jsm", path);
   path = SailfishApp::pathTo("presentation/pdf.js").toLocalFile();
   success &= loadResource("/pdf.js", path);
   path = SailfishApp::pathTo("presentation/pdf.worker.min.js").toLocalFile();
@@ -40,6 +48,8 @@ bool Server::loadResources()
   success &= loadResource("/vertex-shader.vert", path);
   path = SailfishApp::pathTo("presentation/lava.frag").toLocalFile();
   success &= loadResource("/lava.frag", path);
+  path = SailfishApp::pathTo("presentation/presentation.pdf").toLocalFile();
+  success &= loadResource("/presentation.pdf", path);
 
   return success;
 }
