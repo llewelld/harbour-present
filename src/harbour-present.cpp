@@ -2,9 +2,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 /* Copyright © 2024 David Llewellyn-Jones */
 
-#ifdef QT_QML_DEBUG
 #include <QtQuick>
-#endif
 
 #include <sailfishapp.h>
 #include <libsailfishwebengine/webengine.h>
